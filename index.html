@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLJ ALL STAR 2026</title>
+    <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+    <style>
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 20px; display: flex; flex-direction: column; align-items: center; }
+        .header { background: #E60012; color: white; width: 100%; padding: 20px 0; margin: -20px -20px 20px -20px; box-shadow: 0 2px 5px rgba(0,0,0,0.2); }
+        .card { background: white; border-radius: 12px; padding: 20px; width: 90%; max-width: 400px; box-shadow: 0 4px 10px rgba(0,0,0,0.1); }
+        .btn { width: 100%; padding: 18px; margin: 10px 0; border: none; border-radius: 8px; font-size: 1.1rem; font-weight: bold; cursor: pointer; color: white; background: #333; }
+        .btn-a { background: #005CAF; } /* アーティストA：青 */
+        .btn-b { background: #E60012; } /* アーティストB：赤 */
+        #msg { margin-top: 20px; color: #666; font-weight: bold; }
+    </style>
+</head>
+<body>
+
+<div class="header"><h1>ALL STAR 2026</h1></div>
+
+<div id="main-content" class="card" style="display:none;">
+    <p>アーティストを選んで投票してください</p>
+    <button class="btn btn-a" onclick="sendVote('アーティストA')">アーティストA に投票</button>
+    <button class="btn btn-b" onclick="sendVote('アーティストB')">アーティストB に投票</button>
+</div>
+
+<p id="msg">読み込み中...</p>
+
+<script>
+    const LIFF_ID = "2009260407-ZcuKAFR7";
+    const GAS_URL = "YOUR_GAS_URL_HERE"; // ★ここにGASのURLを貼る
+
+    window.onload = async () => {
+        try {
+            await liff.init({ liffId: LIFF_ID });
+            if (!liff.isLoggedIn()) {
+                liff.login();
+            } else {
+                document.getElementById('loader-ui')?.remove();
+                document.getElementById('main-content').style.display = 'block';
+                document.getElementById('msg').innerText = "ログイン完了";
+                setTimeout(() => { document.getElementById('msg').innerText = ""; }, 2000);
+            }
+        } catch (err) {
+            document.getElementById('msg').innerText = "初期化エラー: " + err;
+        }
+    };
+
+    async function sendVote(name) {
+        document.getElementById('main-content').style.opacity = "0.5";
+        document.getElementById('msg').innerText = "投票送信中...";
+        
+        try {
+            const p = await liff.getProfile();
+            // GASへデータを送信（GETリクエスト）
+            const finalUrl = `${GAS_URL}?userId=${p.userId}&artist=${encodeURIComponent(name)}`;
+            
+            // 投票処理（fetch）
+            await fetch(finalUrl, { mode: 'no-cors' });
+            
+            alert(name + " への投票が完了しました！");
+            liff.closeWindow();
+        } catch (e) {
+            alert("エラーが発生しました: " + e);
+            document.getElementById('main-content').style.opacity = "1";
+        }
+    }
+</script>
+</body>
+</html>
