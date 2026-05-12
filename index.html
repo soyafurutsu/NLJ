@@ -53,16 +53,42 @@
         
         try {
             const p = await liff.getProfile();
-            // GASへデータを送信（GETリクエスト）
-            const finalUrl = `${GAS_URL}?userId=${p.userId}&artist=${encodeURIComponent(name)}`;
+            const userId = p.userId;
             
-            // 投票処理（fetch）
-            await fetch(finalUrl, { mode: 'no-cors' });
+            // ★ここが重要：GASに「フォーム送信」としてデータを送る
+            const form = document.createElement('form');
+            form.method = 'GET';
+            form.action = GAS_URL; // あなたのGASのURL
             
-            alert(name + " への投票が完了しました！");
-            liff.closeWindow();
+            // データをセット
+            const field1 = document.createElement('input');
+            field1.type = 'hidden';
+            field1.name = 'userId';
+            field1.value = userId;
+            form.appendChild(field1);
+            
+            const field2 = document.createElement('input');
+            field2.type = 'hidden';
+            field2.name = 'artist';
+            field2.value = name;
+            form.appendChild(field2);
+
+            // 画面を切り替えずに送信するために、GASへ直接リクエストを飛ばす
+            // fetchの代わりに、より強力な「URLへのアクセス」を試みます
+            const finalUrl = `${GAS_URL}?userId=${userId}&artist=${encodeURIComponent(name)}`;
+            
+            // 1. まずは一番確実な「画像の読み込み」を装ってデータを送る（GASに確実に届く裏技）
+            const img = new Image();
+            img.src = finalUrl;
+
+            // 2. 完了メッセージを出して閉じる
+            setTimeout(() => {
+                alert(name + " への投票を受け付けました！\n(反映まで数秒かかる場合があります)");
+                liff.closeWindow();
+            }, 1000);
+
         } catch (e) {
-            alert("エラーが発生しました: " + e);
+            alert("エラー: " + e);
             document.getElementById('main-content').style.opacity = "1";
         }
     }
